@@ -1,11 +1,12 @@
 # Real-Time-Ride-Sharing-Data-Platform
 
-📋 Overview
+##📋 Overview
 
-🚀 Getting Started
+##🚀 Getting Started
 Prerequisites
  1.Docker install and Kafks setup
  ----Create file docker-compose.yml
+ ```
  version: '3'
 services:
   zookeeper:
@@ -20,3 +21,4 @@ services:
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+```
