@@ -22,3 +22,12 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
 ```
+2.Creating topic
+```
+docker exec -it <kafka_container> kafka-topics \
+--create \
+--topic ride_events \
+--bootstrap-server localhost:9092 \
+--partitions 3 \
+--replication-factor 1
+```
