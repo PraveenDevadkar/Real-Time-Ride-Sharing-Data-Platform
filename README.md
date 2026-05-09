@@ -7,20 +7,23 @@ Prerequisites
  1.Docker install and Kafks setup
  ----Create file docker-compose.yml
  ```
- version: '3'
+version: '3.1'
 services:
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
+    image: wurstmeister/zookeeper:latest
+    container_name: zookeeper
+    ports: 
+      - "2181:2181" 
+    
 
   kafka:
-    image: confluentinc/cp-kafka:latest
-    ports:
-      - "9092:9092"
+    image: wurstmeister/kafka:latest
+    container_name: kafka
+    ports: 
+      - "9092:9092" 
     environment:
+      KAFKA_ADVERTISED_HOST_NAME: localhost
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
 ```
 2.Creating topic
 ```
