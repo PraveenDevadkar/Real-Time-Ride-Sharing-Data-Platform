@@ -72,11 +72,10 @@ services:
     depends_on:
       - zookeeper
 
-  spark:
+  spark-master:
     image: spark:3.5.7-scala2.12-java17-python3-ubuntu
     container_name: spark-master
-    entrypoint: /opt/spark/bin/spark-class
-    command: org.apache.spark.deploy.master.Master
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
     ports:
       - "8080:8080"
       - "7077:7077"
@@ -86,12 +85,12 @@ services:
   spark-worker:
     image: spark:3.5.7-scala2.12-java17-python3-ubuntu
     container_name: spark-worker
-    entrypoint: /opt/spark/bin/spark-class
-    command: org.apache.spark.deploy.worker.Worker spark://spark-master:7077
-    ports:
-      - "8081:8081"
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    environment:
+      - SPARK_WORKER_MEMORY=1g
+      - SPARK_WORKER_CORES=1
     depends_on:
-      - spark
+      - spark-master
 
 ```
 
