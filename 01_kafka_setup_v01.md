@@ -24,7 +24,6 @@ Add the following content:
 
 ```yaml
 version: '3.1'
-
 services:
   zookeeper:
     image: wurstmeister/zookeeper:latest
@@ -38,8 +37,12 @@ services:
     ports:
       - "9092:9092"
     environment:
-      KAFKA_ADVERTISED_HOST_NAME: localhost
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+
     depends_on:
       - zookeeper
 
@@ -62,6 +65,9 @@ services:
       - SPARK_WORKER_CORES=1
     depends_on:
       - spark-master
+
+      
+
 ```
 
 ---
