@@ -52,6 +52,50 @@ this project I want to build
 Prerequisites
  1.Docker install and Kafks setup
  ----Create file docker-compose.yml
+```
+version: '3.1'
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: wurstmeister/kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: localhost
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    depends_on:
+      - zookeeper
+
+  spark:
+    image: spark:3.5.7-scala2.12-java17-python3-ubuntu
+    container_name: spark-master
+    entrypoint: /opt/spark/bin/spark-class
+    command: org.apache.spark.deploy.master.Master
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    depends_on:
+      - kafka
+
+  spark-worker:
+    image: spark:3.5.7-scala2.12-java17-python3-ubuntu
+    container_name: spark-worker
+    entrypoint: /opt/spark/bin/spark-class
+    command: org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    ports:
+      - "8081:8081"
+    depends_on:
+      - spark
+
+```
+
+ 
  ```
 version: '3.1'
 services:
