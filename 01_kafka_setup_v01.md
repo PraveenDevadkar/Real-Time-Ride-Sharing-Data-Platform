@@ -201,39 +201,52 @@ Add the following code:
 
 ```python
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, from_json
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
 
+# Create Spark Session
 spark = SparkSession.builder \
-    .appName("KafkaSparkStreaming") \
+    .appName("RideStreaming") \
     .master("spark://spark-master:7077") \
+    .config("spark.hadoop.io.native.lib.available", "false") \
     .getOrCreate()
 
-spark.sparkContext.setLogLevel("ERROR")
+spark.sparkContext.setLogLevel("WARN")
 
-schema = StructType([
-    StructField("ride_id", IntegerType()),
-    StructField("city", StringType()),
-    StructField("fare", DoubleType())
-])
-
-kafka_df = spark.readStream \
+# Read Kafka Stream
+df = spark.readStream \
     .format("kafka") \
-    .option("kafka.bootstrap.servers", "kafka:9092") \
+    .option("kafka.bootstrap.servers", "kafka:29092") \
     .option("subscribe", "ride_events") \
+    .option("startingOffsets", "latest") \
     .load()
 
-value_df = kafka_df.selectExpr("CAST(value AS STRING)")
+# Convert Kafka Binary Data to String
+json_df = df.selectExpr("CAST(value AS STRING)")
 
-json_df = value_df.select(
+# Define Schema
+schema = StructType([
+    StructField("ride_id", IntegerType()),
+    StructField("customer_id", IntegerType()),
+    StructField("driver_id", IntegerType()),
+    StructField("pickup_location", StringType()),
+    StructField("drop_location", StringType()),
+    StructField("fare_amount", IntegerType()),
+    StructField("ride_status", StringType()),
+    StructField("event_timestamp", StringType())
+])
+
+# Parse JSON
+parsed_df = json_df.select(
     from_json(col("value"), schema).alias("data")
 ).select("data.*")
 
-result = json_df.groupBy("city").avg("fare")
-
-query = result.writeStream \
-    .outputMode("complete") \
+# Write Stream
+query = parsed_df.writeStream \
+    .outputMode("append") \
     .format("console") \
+    .option("truncate", "false") \
+    .option("checkpointLocation", "/tmp/checkpoint") \
     .start()
 
 query.awaitTermination()
@@ -272,10 +285,7 @@ Sent: {'ride_id': 1001, 'city': 'Bangalore', 'fare': 250.5}
 Open terminal 2 and run:
 
 ```bash
-docker exec -it spark-master spark-submit \
---master spark://spark-master:7077 \
---packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0 \
-/opt/spark/work-dir/streaming_job.py
+docker exec -it spark-master /opt/spark/bin/spark-submit --conf spark.jars.ivy=/tmp/.ivy2 --master spark://spark-master:7077 --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0 /opt/spark/work-dir/streaming_job.py
 ```
 
 ---
