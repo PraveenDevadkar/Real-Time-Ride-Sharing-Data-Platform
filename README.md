@@ -2,6 +2,52 @@
 
 ##📋 Overview
 
+
+FINAL PROJECT PROBLEM STATEMENT
+🎯 Project Title
+
+Real-Time & Batch E-commerce Data Platform with Cost Monitoring
+
+📌 Problem Statement
+
+An e-commerce company generates large volumes of data from multiple sources such as user orders, product updates, and customer activities. The business requires a scalable data platform that can:
+
+Ingest real-time streaming data (orders, transactions)
+Process batch data (daily product/catalog updates)
+Maintain historical changes using Slowly Changing Dimensions (SCD Type 2)
+Build analytical data models (fact and dimension tables)
+Provide monitoring and cost insights dashboards
+
+The system should support both real-time and batch pipelines, ensuring high availability, data accuracy, and scalability.
+
+🧠 OBJECTIVES (What YOU will build)
+✅ Streaming Pipeline (Kafka + Databricks)
+Ingest real-time order data using Kafka
+Process using Spark Structured Streaming (Databricks)
+Store in Delta/Iceberg tables
+✅ Batch Pipeline (Airflow + Databricks)
+Schedule daily jobs (Airflow)
+Process product & customer data
+Load into warehouse tables
+✅ Data Modeling (IMPORTANT)
+Create Dimension Tables
+customers (SCD Type 2)
+products
+Create Fact Table
+orders
+✅ Historical Tracking
+Implement SCD Type 2
+Track:
+customer updates
+product changes
+✅ Monitoring Layer
+Track:
+pipeline failures
+data delays
+cost usage
+
+this project I want to build
+
 ##🚀 Getting Started
 Prerequisites
  1.Docker install and Kafks setup
