@@ -161,24 +161,54 @@ from kafka import KafkaProducer
 import json
 import time
 import random
+from datetime import datetime
 
+# Kafka Producer Configuration
 producer = KafkaProducer(
     bootstrap_servers='localhost:9092',
     value_serializer=lambda v: json.dumps(v).encode('utf-8')
 )
 
-cities = ['Bangalore', 'Hyderabad', 'Mumbai', 'Delhi']
+# Sample locations
+locations = [
+    "BTM Layout",
+    "Whitefield",
+    "Indiranagar",
+    "Koramangala",
+    "Electronic City",
+    "PCMC",
+    "PMC",
+    "Kharadi",
+    "Hadapsar",
+    "Kasba Peth"
+]
 
+# Continuous Event Generation
 while True:
-    data = {
-        'ride_id': random.randint(1000, 9999),
-        'city': random.choice(cities),
-        'fare': round(random.uniform(50, 500), 2)
+
+    ride_event = {
+        "ride_id": random.randint(1000, 9999),
+        "customer_id": random.randint(1, 100),
+        "driver_id": random.randint(1000, 2000),
+
+        "pickup_location": random.choice(locations),
+        "drop_location": random.choice(locations),
+
+        "fare_amount": random.randint(100, 1000),
+
+        "ride_status": random.choice([
+            "BOOKED",
+            "STARTED",
+            "COMPLETED"
+        ]),
+
+        "event_timestamp": datetime.now().isoformat()
     }
 
-    producer.send('ride_events', value=data)
+    # Send event to Kafka topic
+    producer.send("ride_events", ride_event)
 
-    print(f"Sent: {data}")
+    print("Sent Event:", ride_event)
 
     time.sleep(2)
 ```
@@ -217,9 +247,10 @@ spark = SparkSession.builder \
     .config("spark.hadoop.io.native.lib.available", "false") \
     .getOrCreate()
 
+# Set Log Level
 spark.sparkContext.setLogLevel("WARN")
 
-# Read Kafka Stream
+# Read Streaming Data from Kafka
 df = spark.readStream \
     .format("kafka") \
     .option("kafka.bootstrap.servers", "kafka:29092") \
@@ -227,34 +258,36 @@ df = spark.readStream \
     .option("startingOffsets", "latest") \
     .load()
 
-# Convert Kafka Binary Data to String
+# Convert Kafka Binary to String
 json_df = df.selectExpr("CAST(value AS STRING)")
 
 # Define Schema
 schema = StructType([
-    StructField("ride_id", IntegerType()),
-    StructField("customer_id", IntegerType()),
-    StructField("driver_id", IntegerType()),
-    StructField("pickup_location", StringType()),
-    StructField("drop_location", StringType()),
-    StructField("fare_amount", IntegerType()),
-    StructField("ride_status", StringType()),
-    StructField("event_timestamp", StringType())
+    StructField("ride_id", IntegerType(), True),
+    StructField("customer_id", IntegerType(), True),
+    StructField("driver_id", IntegerType(), True),
+    StructField("pickup_location", StringType(), True),
+    StructField("drop_location", StringType(), True),
+    StructField("fare_amount", IntegerType(), True),
+    StructField("ride_status", StringType(), True),
+    StructField("event_timestamp", StringType(), True)
 ])
 
-# Parse JSON
+# Parse JSON Data
 parsed_df = json_df.select(
     from_json(col("value"), schema).alias("data")
 ).select("data.*")
 
-# Write Stream
+# Write Streaming Data to Parquet
 query = parsed_df.writeStream \
+    .format("parquet") \
     .outputMode("append") \
-    .format("console") \
-    .option("truncate", "false") \
+    .option("path", "/tmp/parquet_data") \
     .option("checkpointLocation", "/tmp/checkpoint") \
+    .option("maxRecordsPerFile", 50) \
     .start()
 
+# Keep Stream Running
 query.awaitTermination()
 ```
 
