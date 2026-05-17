@@ -30,7 +30,6 @@ services:
     container_name: zookeeper
     ports:
       - "2181:2181"
-
   kafka:
     image: wurstmeister/kafka:latest
     container_name: kafka
@@ -42,10 +41,8 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
-
     depends_on:
       - zookeeper
-
   spark-master:
     image: spark:3.5.7-scala2.12-java17-python3-ubuntu
     container_name: spark-master
@@ -53,9 +50,11 @@ services:
     ports:
       - "8080:8080"
       - "7077:7077"
+    volumes:
+      - C:/Users/HP/ride_streaming_project/ride_streaming_data:/tmp/parquet_data
+      - C:/Users/HP/ride_streaming_project/checkpoint:/tmp/checkpoint
     depends_on:
       - kafka
-
   spark-worker:
     image: spark:3.5.7-scala2.12-java17-python3-ubuntu
     container_name: spark-worker
@@ -63,10 +62,11 @@ services:
     environment:
       - SPARK_WORKER_MEMORY=1g
       - SPARK_WORKER_CORES=1
+    volumes:
+      - C:/Users/HP/ride_streaming_project/ride_streaming_data:/tmp/parquet_data
+      - C:/Users/HP/ride_streaming_project/checkpoint:/tmp/checkpoint
     depends_on:
       - spark-master
-
-      
 
 ```
 
